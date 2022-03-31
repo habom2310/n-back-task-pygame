@@ -2,7 +2,7 @@
 
 This is a pygame tool for N-back task
 
-![Alt text](https://github.com/habom2310/n-back-task-pygame/blob/main/Capture.JPG)
+![Alt text](https://github.com/habom2310/n-back-task-pygame/blob/main/Capture.PNG)
 
 ## Step to run
 - Python 3.7
