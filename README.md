@@ -13,7 +13,7 @@ This is a pygame tool for N-back task
 - Log events with timestamp (saved to `data` folder):
     - start: start of the task
     - number: number played
-    - pressed: button presses
+    - pressed: button pressed
 
 - Can work even when the pygame window is not focused.
 
