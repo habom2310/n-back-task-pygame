@@ -1,1 +1,6 @@
-data/*.csv
+data
+build
+dist
+__pycache__
+*.pyc
+logs/*.csv

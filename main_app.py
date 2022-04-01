@@ -3,7 +3,7 @@ import sys
 import datetime
 import time
 from pygame_button import PygameButton
-import sound_sequences
+import utils
 import glob 
 import os
 
@@ -23,7 +23,6 @@ clock = pygame.time.Clock()
 
 # logging variables settings
 data = []
-
 
 # pynput settings
 from pynput import keyboard
@@ -121,12 +120,18 @@ def play_sound(number):
 
 # -------- Logging data to file -----------
 def logging(data):
-    save_path = os.path.join(os.path.dirname(__file__), f"data/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+    # Check folder exists
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
+    save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     with open(save_path, "w+") as f:
         f.write("time,event\n")
         for datapoint in data:
             f.write(str(datapoint["time"]) + "," + str(datapoint["event"]) + "\n")
-
+    
+    print("File saved to: " + save_path)
+    return save_path
 
 # -------- Main Program Loop -----------
 done = False
@@ -165,7 +170,10 @@ while not done:
                 is_running = False
                 sound_counter = 0
                 current_index = 0
-                logging(data)
+                save_path = logging(data)
+                status_text = f"File saved to {save_path}"
+                statusbar_counter = clock_rate * 3
+                is_statusbar = True
                 data = []
             else:
                 current_index += 1
@@ -201,11 +209,7 @@ while not done:
                     is_running = False
                 else:
                     is_running = True
-                    if n_task == 1:
-                        number_sequence = sound_sequences.SET1
-                    elif n_task == 2:
-                        number_sequence = sound_sequences.SET2
-
+                    number_sequence = utils.get_sound_sequences(n_task)
                     timestamp = round(time.time() * 1000)
                     datapoint = {"event": "Start", "time": timestamp}
                     print(datapoint)
