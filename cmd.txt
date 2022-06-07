@@ -1,0 +1,1 @@
+pyinstaller main_app.py --onefile --add-data="sound_samples/*.wav;sound_samples"

@@ -8,6 +8,7 @@ import glob
 import os
 
 soundfile_paths = glob.glob(os.path.join(os.path.dirname(__file__),'sound_samples/*.wav'))
+print(soundfile_paths)
 pygame.mixer.pre_init(44100, -16, 2, 4096)
 pygame.init()
 pygame.mixer.init()
