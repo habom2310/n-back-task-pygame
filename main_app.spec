@@ -3,12 +3,11 @@
 
 block_cipher = None
 
-add_files = [('sound_samples/*.wav','sound_samples')]
 
 a = Analysis(['main_app.py'],
              pathex=[],
              binaries=[],
-             datas=add_files,
+             datas=[],
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},

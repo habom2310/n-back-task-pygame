@@ -11,14 +11,38 @@ soundfile_paths = glob.glob(os.path.join(os.path.dirname(__file__),'sound_sample
 pygame.mixer.pre_init(44100, -16, 2, 4096)
 pygame.init()
 pygame.mixer.init()
-pygame.joystick.init()
 
-print(pygame.joystick.get_count())
-_joystick = pygame.joystick.Joystick(0)
-_joystick.init()
-print(_joystick.get_init())
-print(_joystick.get_id())
-print(_joystick.get_name())
+# init variables
+done = False
+is_running = False
+is_statusbar = False
+n_task = 0
+statusbar_counter = 0
+sound_counter = 0
+time_between_number = 2
+clock_rate = 10
+current_index = 0
+number_sequence = []
+is_btnSet1_selected = False
+is_btnSet2_selected = False
+
+# initialize pygame
+# try:
+#     pygame.mixer.pre_init(44100, -16, 2, 4096)
+#     pygame.init()
+#     pygame.mixer.init()
+#     pygame.joystick.init()
+#     print("number of joystick found:", pygame.joystick.get_count())
+#     _joystick = pygame.joystick.Joystick(0)
+#     _joystick.init()
+#     print(_joystick.get_init())
+#     print(_joystick.get_id())
+#     print(_joystick.get_name())
+# except:
+#     print("No joystick found!")
+#     input("Please connect a joystick. Press enter to exit ...")
+#     sys.exit()
+
 clock = pygame.time.Clock()
 
 # logging variables settings
@@ -30,6 +54,13 @@ from pynput.keyboard import Key, Controller
 keyboard_controller = Controller()
 
 def on_press(key):
+    global is_running
+    global status_text
+    global statusbar_counter
+    global is_statusbar
+    global is_running
+    number_sequence
+
     try: k = key.char # single-char keys
     except: k = key.name # other keys
     if 'char' in dir(key):     
@@ -43,6 +74,11 @@ def on_press(key):
             print(datapoint)
             data.append(datapoint)
             print("q pressed")
+
+        if key.char == 's':
+            start_nback()
+        if key.char == 'x':
+            stop_nback()
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread
@@ -133,19 +169,44 @@ def logging(data):
     print("File saved to: " + save_path)
     return save_path
 
+# ---------- Start/Stop the nback ------
+def start_nback():
+    global is_running
+    global status_text
+    global statusbar_counter
+    global is_statusbar
+    global is_running
+    global number_sequence
+    global data
+
+    if n_task == 0:
+        status_text = "Please select a task."
+        statusbar_counter = clock_rate * 3
+        is_statusbar = True
+        is_running = False
+    else:
+        is_running = True
+        number_sequence = utils.get_sound_sequences(n_task)
+        timestamp = round(time.time() * 1000)
+        datapoint = {"event": "Start", "time": timestamp}
+        print(datapoint)
+        data.append(datapoint)
+
+def stop_nback():
+    global is_running
+    global data
+    global status_text
+    global statusbar_counter
+    global is_statusbar
+    is_running = False
+    save_path = logging(data)
+    status_text = f"File save to {save_path}"
+    statusbar_counter = clock_rate * 3
+    is_statusbar = True
+
+
 # -------- Main Program Loop -----------
-done = False
-is_running = False
-is_statusbar = False
-n_task = 0
-statusbar_counter = 0
-sound_counter = 0
-time_between_number = 2
-clock_rate = 10
-current_index = 0
-number_sequence = []
-is_btnSet1_selected = False
-is_btnSet2_selected = False
+
 while not done:
     screen.fill(white)
 
@@ -184,14 +245,14 @@ while not done:
         if event.type == pygame.QUIT: # If user clicked close.
             done = True # Flag that we are done so we exit this loop.
 
-        elif event.type == pygame.JOYBUTTONDOWN:
-            # if is_running == True: # any button press
-            if _joystick.get_button(0) == 1 and is_running == True: # only button 1 is accepted
-                timestamp = round(time.time() * 1000)
-                datapoint = {"event": "pressed", "time": timestamp}
-                screen.fill(green)
-                print(datapoint)
-                data.append(datapoint)
+        # elif event.type == pygame.JOYBUTTONDOWN:
+        #     # if is_running == True: # any button press
+        #     if _joystick.get_button(0) == 1 and is_running == True: # only button 1 is accepted
+        #         timestamp = round(time.time() * 1000)
+        #         datapoint = {"event": "pressed", "time": timestamp}
+        #         screen.fill(green)
+        #         print(datapoint)
+        #         data.append(datapoint)
 
         #checks if a mouse is clicked
         if event.type == pygame.MOUSEBUTTONDOWN and is_running == False:
@@ -202,6 +263,7 @@ while not done:
             # button the game is terminated
             if btnStart.check_click(mouse_pos):
                 print("Start button is clicked")
+                
                 if n_task == 0:
                     status_text = "Please select a task."
                     statusbar_counter = clock_rate * 3
@@ -242,13 +304,17 @@ while not done:
             is_statusbar = False
             status_text = ""
     if is_running == False:
+        btnStart_text = "Start"
         screen.blit(label_text, label_text.get_rect(center = label_text_center))
         btnSet1.draw(screen, is_btnSet1_selected)
         btnSet2.draw(screen, is_btnSet2_selected)
         btnStart.draw(screen)
     else:
+        btnStart_text = "Stop"
         number = number_sequence[current_index]
         display_number(number, screen)
+        btnStart.draw(screen)
+
 
     # updates the frames of the game
     pygame.display.update()
