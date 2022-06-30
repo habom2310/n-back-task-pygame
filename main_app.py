@@ -31,7 +31,7 @@ current_index = 0
 number_sequence = []
 is_btnSet1_selected = False
 is_btnSet2_selected = False
-
+increment_id = utils.get_latest_id() + 1
 clock = pygame.time.Clock()
 
 # logging variables settings
@@ -61,6 +61,7 @@ def on_press(key):
     global statusbar_counter
     global is_statusbar
     global is_running
+    global data
     number_sequence
 
     try: k = key.char # single-char keys
@@ -83,11 +84,11 @@ def on_press(key):
             start_nback()
             ser.write(b'2')
             socket_client.send(b'2')
+
         if key.char == 'x':
             stop_nback()
             ser.write(b'3')
             socket_client.send(b'3')
-
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread
@@ -165,11 +166,9 @@ def play_sound(number):
 
 # -------- Logging data to file -----------
 def logging(data):
-    # Check folder exists
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-
-    save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    # global increment_id
+    # save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(increment_id).zfill(3)}.csv"
+    # increment_id += 1
     with open(save_path, "w+") as f:
         f.write("time,event\n")
         for datapoint in data:
