@@ -8,6 +8,7 @@ import utils
 import glob 
 import os
 import serial
+import socket_client
 
 port_names = ["COM1", "COM2", "COM3"]
 
@@ -76,13 +77,17 @@ def on_press(key):
             data.append(datapoint)
             print("q pressed")
             ser.write(b'1')
+            socket_client.send(b'1')
 
         if key.char == 's':
             start_nback()
             ser.write(b'2')
+            socket_client.send(b'2')
         if key.char == 'x':
             stop_nback()
             ser.write(b'3')
+            socket_client.send(b'3')
+
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread
