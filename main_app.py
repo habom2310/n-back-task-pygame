@@ -77,18 +77,18 @@ def on_press(key):
             print(datapoint)
             data.append(datapoint)
             print("q pressed")
-            ser.write(b'1')
+            ser.write(f'{increment_id}-1')
             socket_client.send(b'1')
 
         if key.char == 's':
             start_nback()
             ser.write(b'2')
-            socket_client.send(b'2')
+            socket_client.send(f'{increment_id}-2')
 
         if key.char == 'x':
             stop_nback()
             ser.write(b'3')
-            socket_client.send(b'3')
+            socket_client.send(f'{increment_id}-3')
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread

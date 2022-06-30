@@ -19,9 +19,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         print("{} wrote:".format(self.client_address[0]))
         print(self.data)
         # handling logic
+        id, data = str(self.data.split("-"))
         timestamp = round(time.time() * 1000)
-        logging_data = {"event": self.data, "time": timestamp}
-        self.request.sendall(self.data)
+        self.logging(id, {"event": data, "time": timestamp})
+        self.request.sendall({"event": data, "time": timestamp})
 
 
     def logging(self, id, data):
@@ -34,7 +35,7 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        file_path = utils.get_file_path()                
+        file_path = utils.get_file_path(id)                
 
         with open(file_path, "a+") as f:
             text = f.read()
