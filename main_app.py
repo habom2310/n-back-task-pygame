@@ -166,9 +166,9 @@ def play_sound(number):
 
 # -------- Logging data to file -----------
 def logging(data):
-    # global increment_id
-    # save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(increment_id).zfill(3)}.csv"
-    # increment_id += 1
+    global increment_id
+    save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(increment_id).zfill(3)}.csv"
+    increment_id += 1
     with open(save_path, "w+") as f:
         f.write("time,event\n")
         for datapoint in data:

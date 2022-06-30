@@ -1,3 +1,9 @@
+import os
+
+# Check logs folder exists
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
 with open("sound_sequences.txt", "r") as f:
     data = f.readlines()
 
@@ -79,4 +85,31 @@ def get_correct_idx(n):
 
     return correct_idx
 
+import glob
+def get_latest_id():
+    """
+    return the max id in csv files
+    """
+    files = glob.glob("logs/*.csv")
+    if len(files)>0:
+        ids = [int(f.split("_")[-1]) for f in files]
+        max_id = max(ids)
+    else:
+        max_id = 0
 
+    return max_id
+
+import datetime
+def get_file_path(id):
+    """
+    return the logs csv file matches the id
+    id: string after zfill
+    """
+    files = glob.glob("tcp_logs/*.csv")
+    for f in files:
+        if f.split("_")[-1] == id:
+            ret_files = f
+    else:
+        ret_files = f"tcp_logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_001.csv"
+
+    return ret_files
