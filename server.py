@@ -35,11 +35,12 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        file_path = utils.get_file_path(id)                
+        file_path = utils.get_file_path(id)              
 
         with open(file_path, "a+") as f:
+            f.seek(0)
             text = f.read()
-            if not text:
+            if len(text) < 3:
                 f.write("time,event\n")
             f.write(str(data["time"]) + "," + str(data["event"]) + "\n")
         

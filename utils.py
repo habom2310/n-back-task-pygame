@@ -106,10 +106,16 @@ def get_file_path(id):
     id: string after zfill
     """
     files = glob.glob("tcp_logs/*.csv")
+    ret_files = ""
+    if len(files) == 0:
+        ret_files = f"tcp_logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{id}.csv"
+
     for f in files:
+        print(f.split("_")[-1][:-4], type(f.split("_")[-1][:-4]))
         if f.split("_")[-1][:-4] == id:
             ret_files = f
-    else:
-        ret_files = f"tcp_logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_001.csv"
+            break
+        else:
+            ret_files = f"tcp_logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{id}.csv"
 
     return ret_files
