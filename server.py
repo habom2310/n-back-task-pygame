@@ -19,10 +19,10 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         print("{} wrote:".format(self.client_address[0]))
         print(self.data)
         # handling logic
-        id, data = str(self.data.split("-"))
+        id, data = self.data.decode().split("-")
         timestamp = round(time.time() * 1000)
         self.logging(id, {"event": data, "time": timestamp})
-        self.request.sendall({"event": data, "time": timestamp})
+        self.request.sendall(str({"event": data, "time": timestamp}).encode())
 
 
     def logging(self, id, data):
