@@ -78,15 +78,15 @@ def on_press(key):
             data.append(datapoint)
             print("q pressed")
             ser.write(b'1')
-            socket_client.send(str.encode(f'{increment_id.zfill(3)}-1'))
+            socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-1'))
 
         if key.char == 's':
             start_nback()
             ser.write(b'2')
-            socket_client.send(str.encode(f'{increment_id.zfill(3)}-2'))
+            socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-2'))
 
         if key.char == 'x':
-            socket_client.send(str.encode(f'{increment_id.zfill(3)}-3'))
+            socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-3'))
             stop_nback()
             ser.write(b'3')
 
