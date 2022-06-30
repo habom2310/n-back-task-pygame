@@ -21,4 +21,5 @@ This is a pygame tool for N-back task
 
 - Can work with joystick button (Logitech Extreme 3D), need to install the Logitech Profiler and map joystick button to a keyboard button.
 
+- Serial COM: send data from COM1 or COM2 or COM3 if available. Need to install a vitual serial port (HHD vitual serial port tool) and create a pair of COM ports (local bridges, e.g., COM1-COM5). Then listen on the other port (COM5).
 

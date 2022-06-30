@@ -1,3 +1,4 @@
+from tkinter import S
 import pygame
 import sys
 import datetime
@@ -6,6 +7,9 @@ from pygame_button import PygameButton
 import utils
 import glob 
 import os
+import serial
+
+port_names = ["COM1", "COM2", "COM3"]
 
 soundfile_paths = glob.glob(os.path.join(os.path.dirname(__file__),'sound_samples/*.wav'))
 print(soundfile_paths)
@@ -27,27 +31,23 @@ number_sequence = []
 is_btnSet1_selected = False
 is_btnSet2_selected = False
 
-# initialize pygame
-# try:
-#     pygame.mixer.pre_init(44100, -16, 2, 4096)
-#     pygame.init()
-#     pygame.mixer.init()
-#     pygame.joystick.init()
-#     print("number of joystick found:", pygame.joystick.get_count())
-#     _joystick = pygame.joystick.Joystick(0)
-#     _joystick.init()
-#     print(_joystick.get_init())
-#     print(_joystick.get_id())
-#     print(_joystick.get_name())
-# except:
-#     print("No joystick found!")
-#     input("Please connect a joystick. Press enter to exit ...")
-#     sys.exit()
-
 clock = pygame.time.Clock()
 
 # logging variables settings
 data = []
+
+# Serial COM settings
+ser = serial.Serial()
+ser.baudrate = 19200
+
+for port in port_names:
+    ser.port = port
+    try:
+        ser.open()
+        print("Port open: " + port)
+        break
+    except:
+        print(f"Port {port} is not available")
 
 # pynput settings
 from pynput import keyboard
@@ -75,11 +75,14 @@ def on_press(key):
             print(datapoint)
             data.append(datapoint)
             print("q pressed")
+            ser.write(b'1')
 
         if key.char == 's':
             start_nback()
+            ser.write(b'2')
         if key.char == 'x':
             stop_nback()
+            ser.write(b'3')
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread
@@ -321,4 +324,6 @@ while not done:
     pygame.display.update()
 
     clock.tick(clock_rate)
+
+ser.close()
 pygame.quit()
