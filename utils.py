@@ -107,7 +107,7 @@ def get_file_path(id):
     """
     files = glob.glob("tcp_logs/*.csv")
     for f in files:
-        if f.split("_")[-1] == id:
+        if f.split("_")[-1][:-4] == id:
             ret_files = f
     else:
         ret_files = f"tcp_logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_001.csv"
