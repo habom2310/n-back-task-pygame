@@ -92,7 +92,7 @@ def get_latest_id():
     """
     files = glob.glob("logs/*.csv")
     if len(files)>0:
-        ids = [int(f.split("_")[-1]) for f in files]
+        ids = [int(f.split("_")[-1][:-4]) for f in files]
         max_id = max(ids)
     else:
         max_id = 0
