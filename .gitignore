@@ -5,3 +5,4 @@ __pycache__
 *.pyc
 logs/*.csv
 tcp_logs/*.csv
+*.exe

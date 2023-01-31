@@ -7,8 +7,8 @@ from pygame_button import PygameButton
 import utils
 import glob 
 import os
-import serial
-import socket_client
+from serial import Serial
+# import socket_client
 
 port_names = ["COM1", "COM2", "COM3"]
 
@@ -32,15 +32,17 @@ number_sequence = []
 is_btnSet1_selected = False
 is_btnSet2_selected = False
 increment_id = utils.get_latest_id() + 1
+save_path=""
 clock = pygame.time.Clock()
 
 # logging variables settings
 data = []
 
 # Serial COM settings
-ser = serial.Serial()
+ser = Serial()
 ser.baudrate = 19200
 
+is_ser = True
 for port in port_names:
     ser.port = port
     try:
@@ -48,6 +50,7 @@ for port in port_names:
         print("Port open: " + port)
         break
     except:
+        is_ser = False
         print(f"Port {port} is not available")
 
 # pynput settings
@@ -60,7 +63,6 @@ def on_press(key):
     global status_text
     global statusbar_counter
     global is_statusbar
-    global is_running
     global data
     number_sequence
 
@@ -76,19 +78,24 @@ def on_press(key):
                 pass
             print(datapoint)
             data.append(datapoint)
+            log_data_once(datapoint, save_path)
             print("q pressed")
-            ser.write(b'1')
-            socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-1'))
+            if is_ser:
+                ser.write(b'1')
+            # socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-1'))
 
         if key.char == 's':
-            start_nback()
-            ser.write(b'2')
-            socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-2'))
+            if not is_running:
+                start_nback()     
+            if is_ser:
+                ser.write(b'2')
+            # socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-2'))
 
         if key.char == 'x':
-            socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-3'))
+            # socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-3'))
             stop_nback()
-            ser.write(b'3')
+            if is_ser:
+                ser.write(b'3')
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread
@@ -127,22 +134,6 @@ def display_number(number, screen):
     nback_text = nback_text_font.render(str(number), True, black)
     screen.blit(nback_text, screen.blit(nback_text, nback_text.get_rect(center = (width/2,height/2))))
 
-# button set 1-back sequence
-btnSet1_text = "1-back"
-btnSet1_textsize = 40
-btnSet1_textcolor = (0,0,0)
-btnSet1_size = (120,120)
-btnSet1_center = (int(width/5),int(2*height/5))
-btnSet1 = PygameButton(btnSet1_center, btnSet1_size, color_light, color_dark, btnSet1_text, btnSet1_textsize, btnSet1_textcolor)
-
-# button set 2-back sequence
-btnSet2_text = "2-back"
-btnSet2_textsize = 40
-btnSet2_textcolor = (0,0,0)
-btnSet2_size = (120,120)
-btnSet2_center = (int(4*width/5),int(2*height/5))
-btnSet2 = PygameButton(btnSet2_center, btnSet2_size, color_light, color_dark, btnSet2_text, btnSet2_textsize, btnSet2_textcolor)
-
 # button text setting 
 btnStart_text = "Start"
 btnStart_textsize = 40
@@ -165,8 +156,9 @@ def play_sound(number):
     pygame.mixer.music.play()
 
 # -------- Logging data to file -----------
-def logging(data):
+def log_data_all(data):
     global increment_id
+    # global save_path
     save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(increment_id).zfill(3)}.csv"
     increment_id += 1
     with open(save_path, "w+") as f:
@@ -177,28 +169,36 @@ def logging(data):
     print("File saved to: " + save_path)
     return save_path
 
+def log_data_once(data_point, save_path):
+    # global save_path
+    with open(save_path, "a") as f:
+        f.write(str(data_point["time"]) + "," + str(data_point["event"]) + "\n")
+
+    return save_path
+
 # ---------- Start/Stop the nback ------
 def start_nback():
     global is_running
     global status_text
     global statusbar_counter
     global is_statusbar
-    global is_running
     global number_sequence
     global data
+    global save_path
+    global increment_id
 
-    if n_task == 0:
-        status_text = "Please select a task."
-        statusbar_counter = clock_rate * 3
-        is_statusbar = True
-        is_running = False
-    else:
-        is_running = True
-        number_sequence = utils.get_sound_sequences(n_task)
-        timestamp = round(time.time() * 1000)
-        datapoint = {"event": "Start", "time": timestamp}
-        print(datapoint)
-        data.append(datapoint)
+    save_path = f"logs/{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{str(increment_id).zfill(3)}.csv"
+    increment_id += 1
+    with open(save_path, "w+") as f:
+        f.write("time,event\n")
+
+    is_running = True
+    number_sequence = utils.get_sound_sequences()
+    timestamp = round(time.time() * 1000)
+    datapoint = {"event": "Start", "time": timestamp}
+    print(datapoint)
+    data.append(datapoint)
+    log_data_once(datapoint, save_path)
 
 def stop_nback():
     global is_running
@@ -206,12 +206,20 @@ def stop_nback():
     global status_text
     global statusbar_counter
     global is_statusbar
+    global save_path
+    global increment_id
+
+    timestamp = round(time.time() * 1000)
+    datapoint = {"event": "Stop", "time": timestamp}
+    print(datapoint)
+    data.append(datapoint)
+    log_data_once(datapoint, save_path)
+
     is_running = False
-    save_path = logging(data)
+    save_path = log_data_all(data)
     status_text = f"File save to {save_path}"
     statusbar_counter = clock_rate * 3
     is_statusbar = True
-
 
 # -------- Main Program Loop -----------
 
@@ -231,6 +239,7 @@ while not done:
             datapoint = {"event": number, "time": timestamp}
             print(datapoint)
             data.append(datapoint)
+            log_data_once(datapoint, save_path)
         else:
             sound_counter -= 1
 
@@ -239,7 +248,7 @@ while not done:
                 is_running = False
                 sound_counter = 0
                 current_index = 0
-                save_path = logging(data)
+                save_path = log_data_all(data)
                 status_text = f"File saved to {save_path}"
                 statusbar_counter = clock_rate * 3
                 is_statusbar = True
@@ -253,15 +262,6 @@ while not done:
         if event.type == pygame.QUIT: # If user clicked close.
             done = True # Flag that we are done so we exit this loop.
 
-        # elif event.type == pygame.JOYBUTTONDOWN:
-        #     # if is_running == True: # any button press
-        #     if _joystick.get_button(0) == 1 and is_running == True: # only button 1 is accepted
-        #         timestamp = round(time.time() * 1000)
-        #         datapoint = {"event": "pressed", "time": timestamp}
-        #         screen.fill(green)
-        #         print(datapoint)
-        #         data.append(datapoint)
-
         #checks if a mouse is clicked
         if event.type == pygame.MOUSEBUTTONDOWN and is_running == False:
             #if the mouse is clicked on the
@@ -271,38 +271,8 @@ while not done:
             # button the game is terminated
             if btnStart.check_click(mouse_pos):
                 print("Start button is clicked")
-                
-                if n_task == 0:
-                    status_text = "Please select a task."
-                    statusbar_counter = clock_rate * 3
-                    is_statusbar = True
-                    is_running = False
-                else:
-                    is_running = True
-                    number_sequence = utils.get_sound_sequences(n_task)
-                    timestamp = round(time.time() * 1000)
-                    datapoint = {"event": "Start", "time": timestamp}
-                    print(datapoint)
-                    data.append(datapoint)
+                start_nback()
                     
-            elif btnSet1.check_click(mouse_pos):
-                print("1-back")
-                n_task = 1
-                status_text = "1-back chosen"
-                statusbar_counter = clock_rate * 3
-                is_statusbar = True
-                is_btnSet1_selected = True
-                is_btnSet2_selected = False
-
-            elif btnSet2.check_click(mouse_pos):
-                print("2-back")
-                n_task = 2
-                status_text = "2-back chosen"
-                statusbar_counter = clock_rate * 3
-                is_statusbar = True
-                is_btnSet1_selected = False
-                is_btnSet2_selected = True
-
     # ------------ Start drawing ---------------            
 
     if is_statusbar == True:
@@ -314,8 +284,6 @@ while not done:
     if is_running == False:
         btnStart_text = "Start"
         screen.blit(label_text, label_text.get_rect(center = label_text_center))
-        btnSet1.draw(screen, is_btnSet1_selected)
-        btnSet2.draw(screen, is_btnSet2_selected)
         btnStart.draw(screen)
     else:
         btnStart_text = "Stop"
@@ -323,11 +291,11 @@ while not done:
         display_number(number, screen)
         btnStart.draw(screen)
 
-
     # updates the frames of the game
     pygame.display.update()
 
     clock.tick(clock_rate)
 
-ser.close()
+if is_ser:
+    ser.close()
 pygame.quit()
