@@ -1,4 +1,3 @@
-from tkinter import S
 import pygame
 import sys
 import datetime
@@ -7,11 +6,25 @@ from pygame_button import PygameButton
 import utils
 import glob 
 import os
-from serial import Serial
+import win32gui
+from pywinauto.application import Application
+# from serial import Serial
 # import socket_client
 
-port_names = ["COM1", "COM2", "COM3"]
+# port_names = ["COM1", "COM2", "COM3"]
 
+# initialize pywinauto
+windowtitle = "EmotivPRO 3.4.2.444"
+target_window = win32gui.FindWindow(None, windowtitle)
+print(f"{windowtitle}: {target_window}")
+app =Application()
+try:
+    app.connect(handle=target_window)
+    print("App connected")
+except:
+    print(f"Initialize fail! Open the {windowtitle} before open the nback")
+
+# initialize pygame
 soundfile_paths = glob.glob(os.path.join(os.path.dirname(__file__),'sound_samples/*.wav'))
 print(soundfile_paths)
 pygame.mixer.pre_init(44100, -16, 2, 4096)
@@ -39,19 +52,19 @@ clock = pygame.time.Clock()
 data = []
 
 # Serial COM settings
-ser = Serial()
-ser.baudrate = 19200
+# ser = Serial()
+# ser.baudrate = 19200
 
-is_ser = True
-for port in port_names:
-    ser.port = port
-    try:
-        ser.open()
-        print("Port open: " + port)
-        break
-    except:
-        is_ser = False
-        print(f"Port {port} is not available")
+# is_ser = True
+# for port in port_names:
+#     ser.port = port
+#     try:
+#         ser.open()
+#         print("Port open: " + port)
+#         break
+#     except:
+#         is_ser = False
+#         print(f"Port {port} is not available")
 
 # pynput settings
 from pynput import keyboard
@@ -80,22 +93,25 @@ def on_press(key):
             data.append(datapoint)
             log_data_once(datapoint, save_path)
             print("q pressed")
-            if is_ser:
-                ser.write(b'1')
+            app.window(title=windowtitle).send_keystrokes("q")
+            # if is_ser:
+            #     ser.write(b'1')
             # socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-1'))
 
         if key.char == 's':
             if not is_running:
-                start_nback()     
-            if is_ser:
-                ser.write(b'2')
+                start_nback()
+                app.window(title=windowtitle).send_keystrokes("s")
+            # if is_ser:
+            #     ser.write(b'2')
             # socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-2'))
 
         if key.char == 'x':
             # socket_client.send(str.encode(f'{str(increment_id).zfill(3)}-3'))
             stop_nback()
-            if is_ser:
-                ser.write(b'3')
+            app.window(title=windowtitle).send_keystrokes("x")
+            # if is_ser:
+            #     ser.write(b'3')
 
 lis = keyboard.Listener(on_press=on_press)
 lis.start() # start to listen on a separate thread
@@ -296,6 +312,6 @@ while not done:
 
     clock.tick(clock_rate)
 
-if is_ser:
-    ser.close()
+# if is_ser:
+#     ser.close()
 pygame.quit()
